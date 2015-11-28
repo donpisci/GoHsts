@@ -7,7 +7,7 @@ import (
 
 //HstsHandler provides HSTS middleware for HTTP requests
 type HstsHandler struct {
-	MaxAge int
+	MaxAge            int
 	IncludeSubdomains bool
 }
 
@@ -24,11 +24,11 @@ func (h *HstsHandler) HstsHandlerFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//Is there a header already there
 		if header := w.Header().Get(hstsHeaderName); header != "" {
-			w.Header().Set(hstsHeaderName, createHeaderValue(h.MaxAge, h.IncludeSubdomains))	
+			w.Header().Set(hstsHeaderName, createHeaderValue(h.MaxAge, h.IncludeSubdomains))
 		} else {
 			w.Header().Add(hstsHeaderName, createHeaderValue(h.MaxAge, h.IncludeSubdomains))
 		}
-		
+
 		complete := make(chan bool)
 		go func() {
 			if next != nil {
@@ -36,14 +36,14 @@ func (h *HstsHandler) HstsHandlerFunc(next http.Handler) http.Handler {
 			}
 			complete <- true
 		}()
-		<- complete
- 	})
+		<-complete
+	})
 }
 
 //createHeaderValue sets the value to use in the HSTS header
 func createHeaderValue(age int, includeSubDomains bool) string {
 	content := fmt.Sprintf("max-age=%d", age)
-	
+
 	if includeSubDomains {
 		content = fmt.Sprintf("%s; includeSubDomains", content)
 	}
