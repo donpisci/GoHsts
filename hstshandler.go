@@ -1,3 +1,12 @@
+/*
+GoHsts provides a simple middleware inplementation that adds the 
+Strict-Transport-Security header to each response.
+
+It also contains a number of customisable settings to allow for different options.
+
+GoHsts is implements the http.Handler interface so that it will work with net/http 
+*/
+
 package GoHsts
 
 import (
