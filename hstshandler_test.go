@@ -33,7 +33,7 @@ func TestHstsHandler(t *testing.T) {
 //HSTS header is set correctly to a custom value
 func TestHstsHandler_SetMaxAge(t *testing.T) {
 	//Arrange
-	expected := "max-age=1; includeSubDomains"
+	expected := "max-age=1; includeSubDomains; preload;"
 
 	w := httptest.NewRecorder()
 
@@ -66,7 +66,7 @@ func TestHstsHandler_SetMaxAge(t *testing.T) {
 //part of the header value os not included
 func TestHstsHandler_ExcludeSubdomains(t *testing.T) {
 	//Arrange
-	expected := "max-age=31536000"
+	expected := "max-age=31536000; preload;"
 
 	w := httptest.NewRecorder()
 
@@ -99,7 +99,7 @@ func TestHstsHandler_ExcludeSubdomains(t *testing.T) {
 //and IncludeSubdomains properties can be set
 func TestHstsHandler_SetMaxAgeAndExcludeSubdomains(t *testing.T) {
 	//Arrange
-	expected := "max-age=1"
+	expected := "max-age=1; preload;"
 
 	w := httptest.NewRecorder()
 
@@ -129,11 +129,45 @@ func TestHstsHandler_SetMaxAgeAndExcludeSubdomains(t *testing.T) {
 	t.Log(header)
 }
 
+func TestHstsHandler_ExcludePreLoad(t *testing.T) {
+	//Arrange
+	expected := "max-age=1; includeSubDomains"
+
+	w := httptest.NewRecorder()
+
+	r, err := http.NewRequest("GET", "/", nil)
+
+	if err != nil {
+		t.Fatalf("Error constructing test HTTP request [%s]", err)
+	}
+
+	handler := NewHstsHandler()
+	handler.MaxAge = 1
+	handler.IncludeSubdomains = true
+	handler.Preload = false
+
+	//Act
+	handler.HstsHandlerFunc(nil).ServeHTTP(w, r)
+
+	//Assert
+	header := w.HeaderMap.Get(hstsHeaderName)
+
+	if header == "" {
+		t.Error("HSTS header not present")
+	}
+
+	if header != expected {
+		t.Error("HSTS header is not correctly formed")
+	}
+	t.Log(header)
+}
+
 func TestHstsHandler_NewHstsHandler(t *testing.T) {
 	//Arrange
 	expectedMaxAge := 31536000
 	expectedIncludeSubdomain := true
-
+	expectedPreload := true
+	
 	//Act
 	h := NewHstsHandler()
 
@@ -144,5 +178,9 @@ func TestHstsHandler_NewHstsHandler(t *testing.T) {
 
 	if h.IncludeSubdomains != expectedIncludeSubdomain {
 		t.Error("IncludeSubdomain value is incorrect")
+	}
+	
+	if h.Preload != expectedPreload {
+		t.Error("PreLoad value is incorrect")
 	}
 }
